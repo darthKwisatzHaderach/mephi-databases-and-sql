@@ -1,0 +1,5 @@
+CREATE TABLE warehouse;
+CREATE TABLE room;
+CREATE TABLE rack;
+CREATE TABLE client;
+CREATE TABLE product;
