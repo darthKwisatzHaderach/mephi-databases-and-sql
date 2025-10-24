@@ -8,10 +8,8 @@
 -- Описание товара, хранящегося на стеллажах, состоит из: высоты, ширины, длины, веса, даты поступления, номера договора, указания, от какого клиента поступил, даты окончания договора, температурных и влажностных условий хранения, указания стеллажа, и позиции размещения на нём, представляемой в виде целого номера.
 -- На одном стеллаже могут храниться товары разных клиентов.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TABLE room (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     name varchar NOT NULL UNIQUE,
     volume float NOT NULL,
     storage_temperature_range varchar NOT NULL,
@@ -19,7 +17,7 @@ CREATE TABLE room (
 );
 
 CREATE TABLE rack (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     rack_number varchar NOT NULL,
     room_id uuid NOT NULL REFERENCES room(id),
     positions_count integer NOT NULL,
@@ -31,14 +29,14 @@ CREATE TABLE rack (
 );
 
 CREATE TABLE client (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     company_name varchar NOT NULL,
     bank_details text NOT NULL,
     UNIQUE(company_name, bank_details)
 );
 
 CREATE TABLE product (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     height float NOT NULL,
     width float NOT NULL,
     length float NOT NULL,
