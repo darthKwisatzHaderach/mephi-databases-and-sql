@@ -1,5 +1,63 @@
--- Скрипт заполнения базы данных осмысленными данными
--- Складская система хранения товаров
+-- ФИО студента: Тонкушин Дмитрий Алексеевич
+-- Вариант: 4
+-- Описание предметной области:
+-- Описание хранящихся на складе товаров. Включает в себя: описание помещений, описание стеллажей, описание клиентов, описание товаров, хранящихся на стеллажах.
+-- Описание помещения состоит из: названия, полезного объёма, температурных и влажностных условий. 
+-- Описание стеллажа состоит из: номера, указания помещения, в котором стеллаж находится, количества мест для хранения в стеллаже, высоты, ширины и длины одного места, максимальной суммарной нагрузки.
+-- Описание клиента состоит из: названия юридического лица и банковских реквизитов в виде большого текста.
+-- Описание товара, хранящегося на стеллажах, состоит из: высоты, ширины, длины, веса, даты поступления, номера договора, указания, от какого клиента поступил, даты окончания договора, температурных и влажностных условий хранения, указания стеллажа, и позиции размещения на нём, представляемой в виде целого номера.
+-- На одном стеллаже могут храниться товары разных клиентов.
+
+-- Удаление таблиц, если они существуют (для возможности повторного выполнения скрипта)
+DROP TABLE IF EXISTS product CASCADE;
+DROP TABLE IF EXISTS rack CASCADE;
+DROP TABLE IF EXISTS client CASCADE;
+DROP TABLE IF EXISTS room CASCADE;
+
+-- Создание структуры базы данных
+CREATE TABLE room (
+    id uuid PRIMARY KEY,
+    name varchar NOT NULL UNIQUE,
+    volume float NOT NULL,
+    storage_temperature_range varchar NOT NULL,
+    storage_humidity_range varchar NOT NULL
+);
+
+CREATE TABLE rack (
+    id uuid PRIMARY KEY,
+    rack_number varchar NOT NULL,
+    room_id uuid NOT NULL REFERENCES room(id),
+    positions_count integer NOT NULL,
+    position_height float NOT NULL,
+    position_width float NOT NULL,
+    position_length float NOT NULL,
+    max_total_weight float NOT NULL,
+    UNIQUE (room_id, rack_number)
+);
+
+CREATE TABLE client (
+    id uuid PRIMARY KEY,
+    company_name varchar NOT NULL,
+    bank_details text NOT NULL,
+    UNIQUE(company_name, bank_details)
+);
+
+CREATE TABLE product (
+    id uuid PRIMARY KEY,
+    height float NOT NULL,
+    width float NOT NULL,
+    length float NOT NULL,
+    weight float NOT NULL,
+    receipt_date date NOT NULL,
+    contract_number varchar NOT NULL,
+    client_id uuid NOT NULL REFERENCES client(id),
+    contract_end_date date NOT NULL,
+    storage_temperature_range varchar NOT NULL,
+    storage_humidity_range varchar NOT NULL,
+    rack_id uuid NOT NULL REFERENCES rack(id),
+    rack_position integer NOT NULL,
+    UNIQUE(rack_id, rack_position)
+);
 
 -- Вставка помещений
 INSERT INTO room (id, name, volume, storage_temperature_range, storage_humidity_range) VALUES
@@ -32,7 +90,10 @@ INSERT INTO rack (id, rack_number, room_id, positions_count, position_height, po
 
 -- Стеллажи в холодильной камере №2
 ('e7f8a9b0-c1d2-4345-e678-901234567890', 'E-01', 'e5f6a7b8-c9d0-4123-e456-789012345678', 5, 0.5, 1.1, 0.8, 550.0),
-('f8a9b0c1-d2e3-4456-f789-012345678901', 'E-02', 'e5f6a7b8-c9d0-4123-e456-789012345678', 5, 0.5, 1.1, 0.8, 550.0);
+('f8a9b0c1-d2e3-4456-f789-012345678901', 'E-02', 'e5f6a7b8-c9d0-4123-e456-789012345678', 5, 0.5, 1.1, 0.8, 550.0),
+
+-- Стеллаж с нулевыми размерами (для проверки запроса - объем должен быть 0)
+('a9b0c1d2-e3f4-4567-a890-123456789abc', 'F-01', 'c3d4e5f6-a7b8-4901-c234-567890123456', 10, 0.0, 0.0, 0.0, 0.0);
 
 -- Вставка клиентов
 INSERT INTO client (id, company_name, bank_details) VALUES
@@ -41,7 +102,9 @@ INSERT INTO client (id, company_name, bank_details) VALUES
 ('c1d2e3f4-a5b6-4789-c012-345678901234', 'ООО "ХолодСнаб"', 'БИК: 044525593, ИНН: 7707083895, КПП: 770701003, р/с: 40702810300000000003, Банк: АО "Альфа-Банк", к/с: 30101810200000000593'),
 ('d2e3f4a5-b6c7-4890-d123-456789012345', 'ИП Иванов Иван Иванович', 'БИК: 044525225, ИНН: 7707083896, р/с: 40802810400000000004, Банк: ПАО "Сбербанк", к/с: 30101810400000000225'),
 ('e3f4a5b6-c7d8-4901-e234-567890123456', 'ООО "ЭкоПродукт"', 'БИК: 044525225, ИНН: 7707083897, КПП: 770701004, р/с: 40702810500000000005, Банк: ПАО "Сбербанк", к/с: 30101810400000000225'),
-('f4a5b6c7-d8e9-4012-f345-678901234567', 'АО "Молочный Союз"', 'БИК: 044525593, ИНН: 7707083898, КПП: 770701005, р/с: 40702810600000000006, Банк: АО "Альфа-Банк", к/с: 30101810200000000593');
+('f4a5b6c7-d8e9-4012-f345-678901234567', 'АО "Молочный Союз"', 'БИК: 044525593, ИНН: 7707083898, КПП: 770701005, р/с: 40702810600000000006, Банк: АО "Альфа-Банк", к/с: 30101810200000000593'),
+-- Клиент без товаров (для проверки запроса - должен показываться с количеством 0)
+('a5b6c7d8-e9f0-4123-a456-789012345abc', 'ООО "НовыйКлиент"', 'БИК: 044525225, ИНН: 7707083899, КПП: 770701006, р/с: 40702810700000000007, Банк: ПАО "Сбербанк", к/с: 30101810400000000225');
 
 -- Вставка товаров
 INSERT INTO product (id, height, width, length, weight, receipt_date, contract_number, client_id, contract_end_date, storage_temperature_range, storage_humidity_range, rack_id, rack_position) VALUES
@@ -77,3 +140,17 @@ INSERT INTO product (id, height, width, length, weight, receipt_date, contract_n
 ('c5d6e7f8-a9b0-4123-c456-789012345678', 0.45, 0.55, 0.65, 27.5, '2024-02-10', 'ДОГ-2024-012', 'f4a5b6c7-d8e9-4012-f345-678901234567', '2024-08-08', '0°C до +6°C', '80% до 90%', 'e7f8a9b0-c1d2-4345-e678-901234567890', 2),
 ('d6e7f8a9-b0c1-4234-d567-890123456789', 0.4, 0.5, 0.6, 25.0, '2024-02-12', 'ДОГ-2024-013', 'e3f4a5b6-c7d8-4901-e234-567890123456', '2024-08-12', '0°C до +6°C', '80% до 90%', 'f8a9b0c1-d2e3-4456-f789-012345678901', 1);
 
+-- Номера стеллажей, а также объём одного места и суммарный объём всех мест на каждом из них.
+SELECT 
+	rack_number, 
+	(r.position_height * r.position_width * r.position_length) AS position_volume,
+	(r.position_height * r.position_width * r.position_length * r.positions_count) AS total_volume
+FROM rack r;
+
+-- Названия юр. лиц всех клиентов и количество их товаров на стеллажах.
+SELECT 
+	c.company_name, 
+	COUNT(p.id) AS products_on_racks 
+FROM client c 
+LEFT JOIN product p ON c.id = p.client_id 
+GROUP BY c.id, c.company_name;

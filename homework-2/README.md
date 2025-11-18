@@ -71,24 +71,17 @@ docker rm mephi-postgres
 
 1. Подключитесь к БД (см. раздел 2)
 2. Откройте вкладку "Query" или "SQL Editor"
-3. Откройте файл `database.sql` в любом текстовом редакторе
+3. Откройте файл `init.sql` в любом текстовом редакторе
 4. Скопируйте весь содержимое файла
 5. Вставьте в SQL редактор DBViewer
 6. Нажмите "Execute" или `Cmd+Enter`
-7. Повторите шаги 3-6 для файла `insert_data.sql`
 
 ### Вариант 2: Через Docker (psql)
 
-#### Выполнение скрипта создания структуры:
+#### Выполнение объединенного скрипта:
 
 ```bash
-docker exec -i mephi-postgres psql -U postgres -d mephi_warehouse < homework-2/database.sql
-```
-
-#### Выполнение скрипта заполнения данными:
-
-```bash
-docker exec -i mephi-postgres psql -U postgres -d mephi_warehouse < homework-2/insert_data.sql
+docker exec -i mephi-postgres psql -U postgres -d mephi_warehouse < homework-2/init.sql
 ```
 
 #### Или выполнение через интерактивный psql:
@@ -100,21 +93,19 @@ docker exec -it mephi-postgres psql -U postgres -d mephi_warehouse
 Затем в консоли psql можно выполнять SQL команды или загрузить файл:
 
 ```sql
-\i /path/to/database.sql
+\i /path/to/init.sql
 ```
 
-(Но для этого нужно сначала скопировать файлы в контейнер)
+(Но для этого нужно сначала скопировать файл в контейнер)
 
-### Вариант 3: Через терминал с копированием файлов
+### Вариант 3: Через терминал с копированием файла
 
 ```bash
-# Копируем файлы в контейнер
-docker cp homework-2/database.sql mephi-postgres:/tmp/database.sql
-docker cp homework-2/insert_data.sql mephi-postgres:/tmp/insert_data.sql
+# Копируем файл в контейнер
+docker cp homework-2/init.sql mephi-postgres:/tmp/init.sql
 
-# Выполняем скрипты
-docker exec -it mephi-postgres psql -U postgres -d mephi_warehouse -f /tmp/database.sql
-docker exec -it mephi-postgres psql -U postgres -d mephi_warehouse -f /tmp/insert_data.sql
+# Выполняем скрипт
+docker exec -it mephi-postgres psql -U postgres -d mephi_warehouse -f /tmp/init.sql
 ```
 
 ## 4. Проверка данных
