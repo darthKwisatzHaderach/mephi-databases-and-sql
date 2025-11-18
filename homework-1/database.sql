@@ -11,9 +11,13 @@
 CREATE TABLE room (
     id uuid PRIMARY KEY,
     name varchar NOT NULL UNIQUE,
-    volume float NOT NULL,
-    storage_temperature_range varchar NOT NULL,
-    storage_humidity_range varchar NOT NULL
+    volume DECIMAL(10,3) NOT NULL,
+    storage_temperature_min DECIMAL(5,2) NOT NULL,
+    storage_temperature_max DECIMAL(5,2) NOT NULL,
+    storage_humidity_min DECIMAL(5,2) NOT NULL,
+    storage_humidity_max DECIMAL(5,2) NOT NULL,
+    CHECK (storage_temperature_min <= storage_temperature_max),
+    CHECK (storage_humidity_min <= storage_humidity_max)
 );
 
 CREATE TABLE rack (
@@ -21,10 +25,10 @@ CREATE TABLE rack (
     rack_number varchar NOT NULL,
     room_id uuid NOT NULL REFERENCES room(id),
     positions_count integer NOT NULL,
-    position_height float NOT NULL,
-    position_width float NOT NULL,
-    position_length float NOT NULL,
-    max_total_weight float NOT NULL,
+    position_height DECIMAL(10,3) NOT NULL,
+    position_width DECIMAL(10,3) NOT NULL,
+    position_length DECIMAL(10,3) NOT NULL,
+    max_total_weight DECIMAL(10,3) NOT NULL,
     UNIQUE (room_id, rack_number)
 );
 
@@ -37,17 +41,21 @@ CREATE TABLE client (
 
 CREATE TABLE product (
     id uuid PRIMARY KEY,
-    height float NOT NULL,
-    width float NOT NULL,
-    length float NOT NULL,
-    weight float NOT NULL,
+    height DECIMAL(10,3) NOT NULL,
+    width DECIMAL(10,3) NOT NULL,
+    length DECIMAL(10,3) NOT NULL,
+    weight DECIMAL(10,3) NOT NULL,
     receipt_date date NOT NULL,
     contract_number varchar NOT NULL,
     client_id uuid NOT NULL REFERENCES client(id),
     contract_end_date date NOT NULL,
-    storage_temperature_range varchar NOT NULL,
-    storage_humidity_range varchar NOT NULL,
+    storage_temperature_min DECIMAL(5,2) NOT NULL,
+    storage_temperature_max DECIMAL(5,2) NOT NULL,
+    storage_humidity_min DECIMAL(5,2) NOT NULL,
+    storage_humidity_max DECIMAL(5,2) NOT NULL,
     rack_id uuid NOT NULL REFERENCES rack(id),
     rack_position integer NOT NULL,
-    UNIQUE(rack_id, rack_position)
+    UNIQUE(rack_id, rack_position),
+    CHECK (storage_temperature_min <= storage_temperature_max),
+    CHECK (storage_humidity_min <= storage_humidity_max)
 );
